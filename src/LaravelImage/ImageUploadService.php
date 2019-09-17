@@ -209,13 +209,11 @@ class ImageUploadService
      *
      * @return bool
      */
-    public function upload($validateInput = true)
+    public function upload()
     {
         $file = Input::file($this->field);
-        if ($validateInput) {
-            if (!$this->validate($file)) {
-                return false;
-            }
+        if (!$this->validate($file)) {
+            return false;
         }
 
         $originalFileName = $file->getClientOriginalName();
@@ -229,6 +227,46 @@ class ImageUploadService
                 'upload_dir' => $this->uploadPath,
                 'size' => $file->getSize(),
                 'extension' => $file->getClientOriginalExtension(),
+                'mime_type' => $mimeType,
+            ];
+
+            //generate thumbnail if any
+            $this->generateThumbnails($encryptedFileName);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Uploads file to required destination.
+     *
+     * @return bool
+     */
+    public function uploadFromString($fileContent, $originalFileName)
+    {
+        if (!$fileContent) {
+            return false;
+        }
+
+        $tempFileName = tempnam(sys_get_temp_dir(), 'printful-image-upload');
+        file_put_contents($tempFileName, $fileContent);
+
+        $encryptedFileName = $this->getUniqueFilename($originalFileName);
+        $mimeType = mime_content_type($tempFileName);
+
+        if (!file_exists($this->destination)) {
+            mkdir($this->destination, 0777, true);
+        }
+
+        if (rename($tempFileName, $this->destination . $encryptedFileName)) {
+            $this->uploadedFileInfo = [
+                'original_image_name' => $originalFileName,
+                $this->field => $encryptedFileName,
+                'upload_dir' => $this->uploadPath,
+                'size' => filesize($this->destination),
+                'extension' => pathinfo($originalFileName, PATHINFO_EXTENSION),
                 'mime_type' => $mimeType,
             ];
 

@@ -121,7 +121,7 @@ class ImageUploadService
      */
     public function setUploadFolder($folder)
     {
-        $this->uploadPath = $this->basePath.$folder.'/'.$this->getUniqueFolderName().'/';
+        $this->uploadPath = $this->basePath . $folder . '/' . $this->getUniqueFolderName() . '/';
         if ($this->publicPath) {
             $this->destination = public_path($this->uploadPath);
         } else {
@@ -154,21 +154,24 @@ class ImageUploadService
      */
     private function generateThumbnails($file)
     {
-        if (! $this->thumbnailSizes) {
+        if (!$this->thumbnailSizes) {
             return;
         }
 
         foreach ($this->thumbnailSizes as $key => $thumb) {
             if (isset($thumb['crop']) && (bool) $thumb['crop']) {
-                $img = Image::make($this->destination.$file)->resize($thumb['w'], $thumb['h']);
+                $img = Image::make($this->destination . $file)->resize($thumb['w'], $thumb['h']);
             } else {
-                $img = Image::make($this->destination.$file)->resize($thumb['w'], null,
+                $img = Image::make($this->destination . $file)->resize(
+                    $thumb['w'],
+                    null,
                     function ($constraint) {
                         $constraint->aspectRatio();
-                    });
+                    }
+                );
             }
 
-            $img->save($this->destination.$key.'_'.$file);
+            $img->save($this->destination . $key . '_' . $file);
         }
     }
 
@@ -206,11 +209,13 @@ class ImageUploadService
      *
      * @return bool
      */
-    public function upload()
+    public function upload($validateInput = true)
     {
         $file = Input::file($this->field);
-        if (!$this->validate($file)) {
-            return false;
+        if ($validateInput) {
+            if (!$this->validate($file)) {
+                return false;
+            }
         }
 
         $originalFileName = $file->getClientOriginalName();
@@ -252,7 +257,7 @@ class ImageUploadService
      */
     public function clean($folder, $removeDirectory = false)
     {
-        array_map('unlink', glob($folder.DIRECTORY_SEPARATOR.'*'));
+        array_map('unlink', glob($folder . DIRECTORY_SEPARATOR . '*'));
         if ($removeDirectory && file_exists($folder) && is_dir($folder)) {
             rmdir($folder);
         }
@@ -270,7 +275,7 @@ class ImageUploadService
         $uniqueName = uniqid();
         $fileext = explode('.', $filename);
         $mimeType = end($fileext);
-        $filename = $uniqueName.'.'.$mimeType;
+        $filename = $uniqueName . '.' . $mimeType;
 
         return $filename;
     }

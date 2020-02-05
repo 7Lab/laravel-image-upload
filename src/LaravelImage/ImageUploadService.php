@@ -2,7 +2,7 @@
 
 namespace LaravelImage;
 
-use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\Facades\Image;
 
@@ -211,7 +211,7 @@ class ImageUploadService
      */
     public function upload()
     {
-        $file = Input::file($this->field);
+        $file = Request::file($this->field);
         if (!$this->validate($file)) {
             return false;
         }
